@@ -391,5 +391,184 @@ public class RBTree<T extends Comparable<T>> {
         setBlack(this.root);
     }
 
+    /*********************** 删除红黑树中的节点 **********************/
+    public void remove(T key) {
+        RBNode<T> node;
+        if ((node = search(root, key)) != null) {
+            remove(node);
+        }
+    }
 
+    private void remove(RBNode<T> node) {
+        RBNode<T> child, parent;
+        boolean color;
+        //1. 被删除的节点“左右子节点都不为空”的情况
+        if ((node.left != null) && (node.right != null)) {
+            //先找到被删除节点的后继节点，用它来取代被删除节点的位置
+            RBNode<T> replace = node;
+            //1). 获取后继节点
+            replace = replace.right;
+            while (replace.left != null) {
+                replace = replace.left;
+            }
+            //2). 处理“后继节点”和“被删除节点的父节点”之间的关系
+            if (parentOf(node) != null) {
+                if (node == parentOf(node).left) {
+                    parentOf(node).left = node;
+                } else {
+                    parentOf(node).right = node;
+                }
+            } else {
+                this.root = node;
+            }
+            //3). 处理“后继节点的子节点”和“被删除节点的子节点”之间的关系
+            child = node.right;//后继节点肯定不存在左子节点！
+            parent = parentOf(replace);
+            color = colorOf(replace);
+            //后继节点是被删除节点的子节点
+            if (parent == node) {
+                parent = replace;
+            } else {
+                if (child != null) {
+                    setParent(child, parent);
+                }
+                parent.left = child;
+                replace.right = node.right;
+                setParent(node.right, replace);
+            }
+            replace.parent = node.parent;
+            replace.color = node.color;
+            replace.left = node.left;
+            node.left.parent = replace;
+            //4. 如果移走的后继节点颜色是黑色，重新修整红黑树
+            if (color == BLACK) {
+                removeFixUp(child, parent);//将后继节点的child和parent传进去
+            }
+            node = null;
+        }
+    }
+
+    //node表示待修正的节点，即后继节点的子节点（因为后继节点被挪到删除节点的位置去了）
+    private void removeFixUp(RBNode<T> node, RBNode<T> parent) {
+        RBNode<T> other;
+
+        while ((node == null || isBlack(node)) && (node != this.root)) {
+            if (parent.left == node) { //node是左子节点，下面else与这里的刚好相反
+                other = parent.right; //node的兄弟节点
+                if (isRed(other)) { //case1: node的兄弟节点other是红色的
+                    setBlack(other);
+                    setRed(parent);
+                    leftRotate(parent);
+                    other = parent.right;
+                }
+
+                //case2: node的兄弟节点other是黑色的，且other的两个子节点也都是黑色的
+                if ((other.left == null || isBlack(other.left)) &&
+                        (other.right == null || isBlack(other.right))) {
+                    setRed(other);
+                    node = parent;
+                    parent = parentOf(node);
+                } else {
+                    //case3: node的兄弟节点other是黑色的，且other的左子节点是红色，右子节点是黑色
+                    if (other.right == null || isBlack(other.right)) {
+                        setBlack(other.left);
+                        setRed(other);
+                        rightRotate(other);
+                        other = parent.right;
+                    }
+
+                    //case4: node的兄弟节点other是黑色的，且other的右子节点是红色，左子节点任意颜色
+                    setColor(other, colorOf(parent));
+                    setBlack(parent);
+                    setBlack(other.right);
+                    leftRotate(parent);
+                    node = this.root;
+                    break;
+                }
+            } else { //与上面的对称
+                other = parent.left;
+
+                if (isRed(other)) {
+                    // Case 1: node的兄弟other是红色的
+                    setBlack(other);
+                    setRed(parent);
+                    rightRotate(parent);
+                    other = parent.left;
+                }
+
+                if ((other.left == null || isBlack(other.left)) &&
+                        (other.right == null || isBlack(other.right))) {
+                    // Case 2: node的兄弟other是黑色，且other的俩个子节点都是黑色的
+                    setRed(other);
+                    node = parent;
+                    parent = parentOf(node);
+                } else {
+
+                    if (other.left == null || isBlack(other.left)) {
+                        // Case 3: node的兄弟other是黑色的，并且other的左子节点是红色，右子节点为黑色。
+                        setBlack(other.right);
+                        setRed(other);
+                        leftRotate(other);
+                        other = parent.left;
+                    }
+
+                    // Case 4: node的兄弟other是黑色的；并且other的左子节点是红色的，右子节点任意颜色
+                    setColor(other, colorOf(parent));
+                    setBlack(parent);
+                    setBlack(other.left);
+                    rightRotate(parent);
+                    node = this.root;
+                    break;
+                }
+            }
+        }
+        if (node != null) {
+            setBlack(node);
+        }
+    }
+
+    /****************** 销毁红黑树 *********************/
+    public void clear() {
+        destroy(root);
+        root = null;
+    }
+
+    private void destroy(RBNode<T> tree) {
+        if (tree == null) {
+            return;
+        }
+        if (tree.left != null) {
+            destroy(tree.left);
+        }
+        if (tree.right != null) {
+            destroy(tree.right);
+        }
+        tree = null;
+    }
+
+    /******************* 打印红黑树 *********************/
+    public void print() {
+        if (root != null) {
+            print(root, root.key, 0);
+        }
+    }
+
+    /*
+     * key---节点的键值
+     * direction--- 0:表示该节点是根节点
+     *              1:表示该节点是它的父节点的左子节点
+     *              2:表示该节点是它的父节点的右子节点
+     */
+    private void print(RBNode<T> tree, T key, int direction) {
+        if (tree != null) {
+            if (0 == direction) {
+                System.out.printf("%2d(B) is root\n", tree.key);
+            } else {
+                System.out.printf("%2d(%s) is %2d's %6s child\n",
+                        tree.key, isRed(tree) ? "R" : "b", key, direction == 1 ? "right" : "left");
+            }
+            print(tree.left, tree.key, -1);
+            print(tree.right, tree.key, 1);
+        }
+    }
 }
