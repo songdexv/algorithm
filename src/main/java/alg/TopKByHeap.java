@@ -31,35 +31,36 @@ public class TopKByHeap {
         }
         return result;
     }
-    void insert(int a[], int value) {
-        a[0]=value;
-        int parent=0;
 
-        while(parent<a.length){
-            int lchild=2*parent+1;
-            int rchild=2*parent+2;
-            int minIndex=parent;
-            if(lchild<a.length&&a[parent]>a[lchild]){
-                minIndex=lchild;
+    void insert(int a[], int value) {
+        a[0] = value;
+        int parent = 0;
+
+        while (parent < a.length) {
+            int lchild = 2 * parent + 1;
+            int rchild = 2 * parent + 2;
+            int minIndex = parent;
+            if (lchild < a.length && a[parent] > a[lchild]) {
+                minIndex = lchild;
             }
-            if(rchild<a.length&&a[minIndex]>a[rchild]){
-                minIndex=rchild;
+            if (rchild < a.length && a[minIndex] > a[rchild]) {
+                minIndex = rchild;
             }
-            if(minIndex==parent){
+            if (minIndex == parent) {
                 break;
-            }else{
-                int temp=a[parent];
-                a[parent]=a[minIndex];
-                a[minIndex]=temp;
-                parent=minIndex;
+            } else {
+                int temp = a[parent];
+                a[parent] = a[minIndex];
+                a[minIndex] = temp;
+                parent = minIndex;
             }
         }
     }
 
     int[] getTopKByHeap(int input[], int k) {
         int heap[] = this.createHeap(input, k);
-        for(int i=k;i<input.length;i++){
-            if(input[i]>heap[0]){
+        for (int i = k; i < input.length; i++) {
+            if (input[i] > heap[0]) {
                 this.insert(heap, input[i]);
             }
         }
@@ -67,7 +68,7 @@ public class TopKByHeap {
     }
 
     public static void main(String[] args) {
-        int a[] = { 4, 3, 5, 1, 2,8,9,10};
+        int a[] = {4, 3, 5, 1, 2, 8, 9, 10};
         int result[] = new TopKByHeap().getTopKByHeap(a, 3);
         for (int temp : result) {
             System.out.println(temp);

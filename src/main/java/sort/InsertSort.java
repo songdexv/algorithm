@@ -5,23 +5,22 @@ package sort;
  */
 public class InsertSort {
     public static void insertSort(int[] a, int n) {
-        int i, j, k;
-        for (i = 1; i < n; i++) {
-            //为a[i]在前面的a[0...i-1]有序区间中找一个合适的位置
-            for (j = i - 1; j > 0; j--) {
-                if (a[j] < a[i]) {
-                    break;
-                }
+        for (int i = 1; i < n; i++) {
+            int v = a[i];
+            int j = i - 1;
+            while (j >= 0 && a[j] > v) {
+                a[j + 1] = a[j];
+                j--;
             }
-            //如找到了一个合适的位置
-            if (j != i - 1) {
-                //将比a[i]大的数据向后移
-                int temp = a[i];
-                for (k = i - 1; k > j; k--) {
-                    a[k + 1] = a[k];
-                }
-                a[k + 1] = temp;
-            }
+            a[j + 1] = v;
+        }
+    }
+
+    public static void main(String[] args) {
+        int[] array = new int[] {1, 5, 4, 9, 7, 2, 0, 4, 5, 2, 3, 8, 9, 6};
+        insertSort(array, array.length);
+        for (int e : array) {
+            System.out.print(e + " ");
         }
     }
 }
